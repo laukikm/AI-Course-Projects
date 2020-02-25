@@ -46,7 +46,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/laukik/ai_projects/ai_env"
+VIRTUAL_ENV="/home/laukik/AI-Course-Projects/ai_env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

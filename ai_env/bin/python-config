@@ -1,4 +1,4 @@
-#!/home/laukik/ai_projects/ai_env/bin/python
+#!/home/laukik/AI-Course-Projects/ai_env/bin/python
 
 import sys
 import getopt

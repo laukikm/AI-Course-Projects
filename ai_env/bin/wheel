@@ -1,4 +1,4 @@
-#!/home/laukik/ai_projects/ai_env/bin/python2.7
+#!/home/laukik/AI-Course-Projects/ai_env/bin/python2.7
 # -*- coding: utf-8 -*-
 import re
 import sys
