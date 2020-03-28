@@ -152,10 +152,19 @@ def axiom_generator_percept_sentence(t, tvec):
         Input:  [False, True, False, False, True]
         Output: '~Stench0 & Breeze0 & ~Glitter0 & ~Bump0 & Scream0'
     """
-    axiom_str = ''
+
+    axiom_str = '~'+percept_stench_str(t)
+    words=[percept_breeze_str(t),percept_glitter_str(t),percept_bump_str(t),percept_scream_str(t)]
     "*** YOUR CODE HERE ***"
+    for i in range(len(words)):
+        if(tvec[i+1]==True):
+            axiom_str+=' & '+words[i]
+        else:
+            axiom_str+=' & '+'~'+words[i]
+
+
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 
@@ -169,10 +178,11 @@ def axiom_generator_initial_location_assertions(x, y):
 
     x,y := the location
     """
-    axiom_str = ''
+    axiom_str = '~'+wumpus_str(x,y)+' & '+'~'+pit_str(x,y)
     "*** YOUR CODE HERE ***"
+
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_pits_and_breezes(x, y, xmin, xmax, ymin, ymax):
@@ -185,7 +195,45 @@ def axiom_generator_pits_and_breezes(x, y, xmin, xmax, ymin, ymax):
            variables to 'prune' any neighboring locations that are outside
            of the environment (and therefore are walls, so can't have Pits).
     """
-    axiom_str = ''
+
+    #I've assumed that xmin<=x<=xmax, and ymin<=y
+    def get_neighbors(x,y,xmin,xmax,ymin,ymax):
+        possible_x=[]
+        possible_y=[]
+        possible_neighbors=[]
+        if(x==xmin):
+            possible_x=[x,x+1]
+        if(x==xmax):
+            possible_x=[x,x-1]
+        elif(x>xmin and x<xmax):
+            possible_x=[x-1,x,x+1]
+        if(y==ymin):
+            possible_y=[y,y+1]
+        if(y==ymax):
+            possible_y=[y-1,y]
+        elif(y<ymax and y>ymin):
+            possible_y=[y-1,y,y+1]
+        
+        for next_x in possible_x:
+            neighbor=[next_x,y]
+            possible_neighbors.append(neighbor)
+        for next_y in possible_y:
+            neighbor=[x,next_y]
+            if(neighbor not in possible_neighbors):
+                possible_neighbors.append(neighbor)
+
+        return possible_neighbors
+
+    possible_neighbors=get_neighbors(x,y,xmin,xmax,ymin,ymax)
+    
+    axiom_str = breeze_str(x,y)+' <=> '
+    pit_in_neighbors='('+pit_str(possible_neighbors[0][0],possible_neighbors[0][1])
+    for i in range(1,len(possible_neighbors)):
+        pit_in_neighbors+=' | '+pit_str(possible_neighbors[i][0],possible_neighbors[i][1])
+    pit_in_neighbors+=')'
+
+    axiom_str+=pit_in_neighbors
+
     "*** YOUR CODE HERE ***"
     return axiom_str
 
@@ -211,7 +259,43 @@ def axiom_generator_wumpus_and_stench(x, y, xmin, xmax, ymin, ymax):
            variables to 'prune' any neighboring locations that are outside
            of the environment (and therefore are walls, so can't have Wumpi).
     """
-    axiom_str = ''
+    def get_neighbors(x,y,xmin,xmax,ymin,ymax):
+        possible_x=[]
+        possible_y=[]
+        possible_neighbors=[]
+        if(x==xmin):
+            possible_x=[x,x+1]
+        if(x==xmax):
+            possible_x=[x,x-1]
+        elif(x>xmin and x<xmax):
+            possible_x=[x-1,x,x+1]
+        if(y==ymin):
+            possible_y=[y,y+1]
+        if(y==ymax):
+            possible_y=[y-1,y]
+        elif(y<ymax and y>ymin):
+            possible_y=[y-1,y,y+1]
+        
+        for next_x in possible_x:
+            neighbor=[next_x,y]
+            possible_neighbors.append(neighbor)
+        for next_y in possible_y:
+            neighbor=[x,next_y]
+            if(neighbor not in possible_neighbors):
+                possible_neighbors.append(neighbor)
+
+        return possible_neighbors
+
+    possible_neighbors=get_neighbors(x,y,xmin,xmax,ymin,ymax)
+    
+    axiom_str = stench_str(x,y)+' <=> '
+    pit_in_neighbors='('+wumpus_str(possible_neighbors[0][0],possible_neighbors[0][1])
+    for i in range(1,len(possible_neighbors)):
+        pit_in_neighbors+=' | '+wumpus_str(possible_neighbors[i][0],possible_neighbors[i][1])
+    pit_in_neighbors+=')'
+
+    axiom_str+=pit_in_neighbors
+
     "*** YOUR CODE HERE ***"
     return axiom_str
 
@@ -230,10 +314,14 @@ def axiom_generator_at_least_one_wumpus(xmin, xmax, ymin, ymax):
 
     xmin, xmax, ymin, ymax := the bounds of the environment.
     """
-    axiom_str = ''
+    axiom_str = wumpus_str(xmin,ymin)
+    for x in range(xmin,xmax+1):
+        for y in range(ymin,ymax+1):
+            if(not (x==xmin and y==ymin)):
+                axiom_str+=' | '+wumpus_str(x,y)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_at_most_one_wumpus(xmin, xmax, ymin, ymax):
@@ -245,7 +333,26 @@ def axiom_generator_at_most_one_wumpus(xmin, xmax, ymin, ymax):
     axiom_str = ''
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    
+    no_wumpus_list=['~'+wumpus_str(xmin,ymin)]
+    for x in range(xmin,1+xmax):
+        for y in range(ymin,ymax+1):
+            if(not(x==xmin and y==ymin)):
+                no_wumpus_list.append('~'+wumpus_str(x,y))
+    #This list contains elements of the type '~Wx_y'
+
+    no_wumpus_string_list=['('+' & '.join(no_wumpus_list)+')']
+
+    for i in range(len(no_wumpus_list)):
+        no_wumpus_list[i]=no_wumpus_list[i].replace('~','') #Remove the negation, this means that this x y has a wumpus
+        no_wumpus_string_list.append('('+' & '.join(no_wumpus_list)+')')
+        no_wumpus_list[i]='~'+no_wumpus_list[i]
+
+    axiom_str=' | '.join(no_wumpus_string_list)
+
+
+
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_only_in_one_location(xi, yi, xmin, xmax, ymin, ymax, t = 0):
@@ -256,10 +363,22 @@ def axiom_generator_only_in_one_location(xi, yi, xmin, xmax, ymin, ymax, t = 0):
     xmin, xmax, ymin, ymax := the bounds of the environment.
     t := time; default=0
     """
-    axiom_str = ''
+    if(xmin==xi and ymin==yi): 
+        axiom_str = state_loc_str(xmin,ymin,t)
+    else:
+        axiom_str = '~'+state_loc_str(xmin,ymin,t)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
+    for x in range(xmin,xmax+1):
+        for y in range(ymin,ymax+1):
+            if(x==xmin and y==ymin):
+                continue
+            if(x==xi and y==yi):
+                axiom_str+=' & '+state_loc_str(x,y,t)
+            else:
+                axiom_str+=' & '+'~'+state_loc_str(x,y,t)
+
     return axiom_str
 
 def axiom_generator_only_one_heading(heading = 'north', t = 0):
@@ -270,10 +389,31 @@ def axiom_generator_only_one_heading(heading = 'north', t = 0):
                will be one of: 'north', 'east', 'south', 'west'
     t := time; default=0
     """
-    axiom_str = ''
+    def get_direction_string(heading='north',t=0):
+        if(heading=='north'):
+            return state_heading_north_str(t)
+        elif(heading=='south'):
+            return state_heading_south_str(t)
+        elif(heading=='east'):
+            return state_heading_east_str(t)
+        elif(heading=='west'):
+            return state_heading_west_str(t)
+
+    headings=['north', 'east', 'south', 'west']
+    
+    if(headings[0]==heading):
+        axiom_str = get_direction_string(headings[0],t)
+    else:
+        axiom_str = '~'+get_direction_string(headings[0],t)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
+    for h in headings[1:]:
+        if(h==heading):
+            axiom_str+=' & '+get_direction_string(h,t)
+        else:
+            axiom_str+=' & '+'~'+get_direction_string(h,t)
+
     return axiom_str
 
 def axiom_generator_have_arrow_and_wumpus_alive(t = 0):
@@ -282,10 +422,10 @@ def axiom_generator_have_arrow_and_wumpus_alive(t = 0):
 
     t := time; default=0
     """
-    axiom_str = ''
+    axiom_str = state_have_arrow_str(t)+state_wumpus_alive_str(t)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 
@@ -324,7 +464,9 @@ def axiom_generator_location_OK(x, y, t):
     x,y := location
     t := time
     """
-    axiom_str = ''
+
+    #There's no pit, and if there is a wumpus, it's dead
+    axiom_str = '~'+pit_str(x,y)+' & '+'('+'~'+wumpus_str(x,y)+' | '+'~'+state_wumpus_alive_str(t)+')'
     "*** YOUR CODE HERE ***"
     return axiom_str
 
@@ -349,7 +491,7 @@ def axiom_generator_breeze_percept_and_location_property(x, y, t):
     x,y := location
     t := time
     """
-    axiom_str = ''
+    axiom_str = percept_breeze_str(t)+' ==> '+breeze_str(x,y)
     "*** YOUR CODE HERE ***"
     return axiom_str
 
@@ -370,7 +512,7 @@ def axiom_generator_stench_percept_and_location_property(x, y, t):
     x,y := location
     t := time
     """
-    axiom_str = ''
+    axiom_str = percept_stench_str(t)+' ==> '+stench_str(x,y)
     "*** YOUR CODE HERE ***"
     return axiom_str
 
@@ -410,6 +552,7 @@ def axiom_generator_at_location_ssa(t, x, y, xmin, xmax, ymin, ymax):
     """
     axiom_str = ''
     "*** YOUR CODE HERE ***"
+    utils.print_not_implemented()
     return axiom_str
 
 def generate_at_location_ssa(t, x, y, xmin, xmax, ymin, ymax, heading):
@@ -446,10 +589,14 @@ def axiom_generator_have_arrow_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+    #If no shot is made at any instant between 0,t-1, then it has an arrow at instant t
+    
+    axiom_str = '~'+action_shoot_str(0)
+    for i in range(1,t): #t not included
+        axiom_str+=' & '+'~'+action_shoot_str(i)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_wumpus_alive_ssa(t):
@@ -630,5 +777,6 @@ def generate_mutually_exclusive_axioms(t):
     axioms.append(axiom_generator_only_one_action_axioms(t))
 
     return filter(lambda s: s != '', axioms)
+
 
 #-------------------------------------------------------------------------------
