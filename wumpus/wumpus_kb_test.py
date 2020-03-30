@@ -48,8 +48,8 @@ def test_axiom_generation():
     print '\naxiom_generator_stench_percept_and_location_property(2, 3, 8)'
     print axiom_generator_stench_percept_and_location_property(2, 3, 8)
 
-    print '\naxiom_generator_at_location_ssa(8, 2, 3, 0, 5, 0, 5)'
-    print axiom_generator_at_location_ssa(8, 2, 3, 0, 5, 0, 5)
+    print '\naxiom_generator_at_location_ssa(8, 0, 3, 0, 5, 0, 5)'
+    print axiom_generator_at_location_ssa(8, 0, 3, 0, 5, 0, 5)
 
     print '\naxiom_generator_have_arrow_ssa(8)'
     print axiom_generator_have_arrow_ssa(8)

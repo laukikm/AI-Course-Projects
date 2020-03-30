@@ -331,6 +331,7 @@ def axiom_generator_at_most_one_wumpus(xmin, xmax, ymin, ymax):
     xmin, xmax, ymin, ymax := the bounds of the environment.
     """
     axiom_str = ''
+    return axiom_str
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
     
@@ -422,7 +423,7 @@ def axiom_generator_have_arrow_and_wumpus_alive(t = 0):
 
     t := time; default=0
     """
-    axiom_str = state_have_arrow_str(t)+state_wumpus_alive_str(t)
+    axiom_str = state_have_arrow_str(t)+' & '+state_wumpus_alive_str(t)
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
     #utils.print_not_implemented()
@@ -550,9 +551,38 @@ def axiom_generator_at_location_ssa(t, x, y, xmin, xmax, ymin, ymax):
     t := time
     xmin, xmax, ymin, ymax := the bounds of the environment.
     """
+    east_neighbor,west_neighbor,north_neighbor,south_neighbor=[],[],[],[]
+    if(y<ymax):
+        north_neighbor=[x,y+1]
+    if(y>ymin):
+        south_neighbor=[x,y-1]
+    if(x<xmax):
+        east_neighbor=[x+1,y]
+    if(x>xmin):
+        west_neighbor=[x-1,y]
+
+
+    neighbors=[east_neighbor,west_neighbor,north_neighbor,south_neighbor]
+
+    #What direcions the agent had at the current time step
+    directions=[state_heading_west_str(t),state_heading_east_str(t),state_heading_south_str(t),state_heading_north_str(t)] #If the agent was north, it must be heading south
+
     axiom_str = ''
+    #First include all the actions that cause the state not to move i.e all except go forward
+    axiom_str='('+state_loc_str(x,y,t)+' & '+'~'+action_forward_str(t)+')'
+    
+
+    for i in range(len(neighbors)):
+        current_neighbor=neighbors[i]
+        if(current_neighbor!=[]):
+            axiom_str+=' | '+'('+state_loc_str(current_neighbor[0],current_neighbor[1],t)+' & '+directions[i]+' & '+action_forward_str(t)+')'
+
+
+
+
+    
     "*** YOUR CODE HERE ***"
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def generate_at_location_ssa(t, x, y, xmin, xmax, ymin, ymax, heading):
@@ -589,11 +619,13 @@ def axiom_generator_have_arrow_ssa(t):
 
     t := time
     """
-    #If no shot is made at any instant between 0,t-1, then it has an arrow at instant t
+
+    #If no shot is made at any instant between 0,t-1, then it has an arrow at instant t    
     
     axiom_str = '~'+action_shoot_str(0)
-    for i in range(1,t): #t not included
+    for i in range(1,t+1): #t is included
         axiom_str+=' & '+'~'+action_shoot_str(i)
+    
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
     #utils.print_not_implemented()
@@ -610,10 +642,15 @@ def axiom_generator_wumpus_alive_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+
+    #If no scream is perceived previously, then the wumpus is as alive as COVID 19
+    axiom_str = '~'+percept_scream_str(0)
+    for i in range(1,t+1): #t not included
+        axiom_str+=' & '+'~'+percept_scream_str(i)
+
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 #----------------------------------
@@ -626,10 +663,13 @@ def axiom_generator_heading_north_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+    #The agent can be heading north if it is already heading north and does not turn, or if it turns north
+    axiom_str = '('+state_heading_north_str(t)+' & '+'~'+action_turn_right_str(t)+' & '+'~'+action_turn_left_str(t)+')'+' | '+'('+state_heading_east_str(t)+' & '+action_turn_left_str(t)+')'
+    axiom_str+=' | '+'('+state_heading_west_str(t)+' & '+action_turn_right_str(t)+')'
+
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_east_ssa(t):
@@ -639,10 +679,12 @@ def axiom_generator_heading_east_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+    axiom_str = '('+state_heading_east_str(t)+' & '+'~'+action_turn_right_str(t)+' & '+'~'+action_turn_left_str(t)+')'+' | '+'('+state_heading_south_str(t)+' & '+action_turn_left_str(t)+')'
+    axiom_str+=' | '+'('+state_heading_north_str(t)+' & '+action_turn_right_str(t)+')'
+    
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_south_ssa(t):
@@ -652,10 +694,13 @@ def axiom_generator_heading_south_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+
+    axiom_str = '('+state_heading_south_str(t)+' & '+'~'+action_turn_right_str(t)+' & '+'~'+action_turn_left_str(t)+')'+' | '+'('+state_heading_west_str(t)+' & '+action_turn_left_str(t)+')'
+    axiom_str+=' | '+'('+state_heading_east_str(t)+' & '+action_turn_right_str(t)+')'
+
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_west_ssa(t):
@@ -665,10 +710,12 @@ def axiom_generator_heading_west_ssa(t):
 
     t := time
     """
-    axiom_str = ''
+    axiom_str = '('+state_heading_west_str(t)+' & '+'~'+action_turn_right_str(t)+' & '+'~'+action_turn_left_str(t)+')'+' | '+'('+state_heading_north_str(t)+' & '+action_turn_left_str(t)+')'
+    axiom_str+=' | '+'('+state_heading_south_str(t)+' & '+action_turn_right_str(t)+')'
+
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def generate_heading_ssa(t):
@@ -699,10 +746,12 @@ def axiom_generator_heading_only_north(t):
 
     t := time
     """
-    axiom_str = ''
-    "*** YOUR CODE HERE ***"
+    directions=[state_heading_west_str(t),state_heading_east_str(t),state_heading_south_str(t)] #If the agent was north, it must be heading south
+    axiom_str = state_heading_north_str(t)
+    for dir_string in directions:
+        axiom_str+=' & '+'~'+dir_string
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_only_east(t):
@@ -712,10 +761,14 @@ def axiom_generator_heading_only_east(t):
 
     t := time
     """
-    axiom_str = ''
+    directions=[state_heading_north_str(t),state_heading_west_str(t),state_heading_south_str(t)] #If the agent was north, it must be heading south
+    axiom_str = state_heading_east_str(t)
+    
+    for dir_string in directions:
+        axiom_str+=' & '+'~'+dir_string
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_only_south(t):
@@ -725,10 +778,14 @@ def axiom_generator_heading_only_south(t):
 
     t := time
     """
-    axiom_str = ''
+    directions=[state_heading_north_str(t),state_heading_east_str(t),state_heading_west_str(t)] #If the agent was north, it must be heading south
+    axiom_str = state_heading_south_str(t)
+    
+    for dir_string in directions:
+        axiom_str+=' & '+'~'+dir_string
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def axiom_generator_heading_only_west(t):
@@ -738,10 +795,14 @@ def axiom_generator_heading_only_west(t):
 
     t := time
     """
-    axiom_str = ''
+    directions=[state_heading_south_str(t),state_heading_north_str(t),state_heading_east_str(t)] #If the agent was north, it must be heading south
+    axiom_str = state_heading_west_str(t)
+    
+    for dir_string in directions:
+        axiom_str+=' & '+'~'+dir_string
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 def generate_heading_only_one_direction_axioms(t):
@@ -757,10 +818,21 @@ def axiom_generator_only_one_action_axioms(t):
     
     t := time
     """
+    actions=[action_turn_right_str(t),action_turn_left_str(t),action_forward_str(t),action_wait_str(t),action_shoot_str(t),action_climb_str(t),action_grab_str(t)] #All 7 actions are listed
     axiom_str = ''
+
+    for possible_action in actions:
+        if(possible_action==actions[0]):
+            axiom_str+='('+possible_action
+        else:
+            axiom_str+=' | '+'('+possible_action
+        for impossible_action in actions:
+            if(possible_action!=impossible_action):
+                axiom_str+=' & '+'~'+impossible_action
+        axiom_str+=')'
     "*** YOUR CODE HERE ***"
     # Comment or delete the next line once this function has been implemented.
-    utils.print_not_implemented()
+    #utils.print_not_implemented()
     return axiom_str
 
 

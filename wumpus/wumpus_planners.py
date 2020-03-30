@@ -126,6 +126,12 @@ class PlanRouteProblem(search.Problem):
         Heuristic that will be used by search.astar_search()
         """
         "*** YOUR CODE HERE ***"
+        state=node.state
+        x,y=state[0],state[1]
+        min_distance=float('inf')
+        for goal in self.goals:
+            min_distance=min(min_distance,manhattan_distance_with_heading(state,goal))
+        return min_distance
         pass
 
     def actions(self, state):
@@ -133,6 +139,20 @@ class PlanRouteProblem(search.Problem):
         Return list of allowed actions that can be made in state
         """
         "*** YOUR CODE HERE ***"
+        x,y,heading=state[0],state[1],state[2]
+        actions=['TurnRight','TurnLeft']
+
+        if(heading==0 and (x,y+1) in Allowed):
+            actions.append('Forward')
+        if(heading==1 and (x-1,y) in Allowed):
+            actions.append('Forward')
+        if(heading==2 and (x,y-1) in Allowed):
+            actions.append('Forward')
+        if(heading==3 and (x+1,y) in Allowed):
+            actions.append('Forward')
+
+        actions.append('Wait')
+        return actions
         pass
 
 
@@ -141,6 +161,22 @@ class PlanRouteProblem(search.Problem):
         Return the new state after applying action to state
         """
         "*** YOUR CODE HERE ***"
+        if(action=='TurnRight'):
+            state[2]=(state[2]-1)%4
+        if(action=='TurnLeft'):
+            state[2]=(state[2]+1)%4
+        if(action=='Forward'):
+            if(state[2]==0):
+                state[1]+=1
+            if(state[2]==1):
+                state[0]-=1
+            if(state[2]==2):
+                state[1]-=1
+            if(state[2]==3):
+                state[0]+=1
+        if(action=='Wait'):
+            pass
+        return state
         pass
 
     def goal_test(self, state):
@@ -148,8 +184,10 @@ class PlanRouteProblem(search.Problem):
         Return True if state is a goal state
         """
         "*** YOUR CODE HERE ***"
-        return True
-
+        location=(state[0],state[1])
+        if(location in self.goals):
+            return True
+        return False
 #-------------------------------------------------------------------------------
 
 def test_PRP(initial):
@@ -231,6 +269,12 @@ class PlanShotProblem(search.Problem):
         Heuristic that will be used by search.astar_search()
         """
         "*** YOUR CODE HERE ***"
+        state=node.state
+        x,y=state[0],state[1]
+        min_distance=float('inf')
+        for goal in self.goals:
+            min_distance=min(min_distance,manhattan_distance_with_heading(state,goal))
+        return min_distance
         pass
 
     def actions(self, state):
@@ -238,21 +282,67 @@ class PlanShotProblem(search.Problem):
         Return list of allowed actions that can be made in state
         """
         "*** YOUR CODE HERE ***"
-        pass
+        x,y,heading=state[0],state[1],state[2]
+        actions=['TurnRight','TurnLeft']
+
+        if(heading==0 and (x,y+1) in Allowed):
+            actions.append('Forward')
+        if(heading==1 and (x-1,y) in Allowed):
+            actions.append('Forward')
+        if(heading==2 and (x,y-1) in Allowed):
+            actions.append('Forward')
+        if(heading==3 and (x+1,y) in Allowed):
+            actions.append('Forward')
+
+        actions.append('Wait')
+        return actions
 
     def result(self, state, action):
         """
         Return the new state after applying action to state
         """
         "*** YOUR CODE HERE ***"
+        if(action=='TurnRight'):
+            state[2]=(state[2]-1)%4
+        if(action=='TurnLeft'):
+            state[2]=(state[2]+1)%4
+        if(action=='Forward'):
+            if(state[2]==0):
+                state[1]+=1
+            if(state[2]==1):
+                state[0]-=1
+            if(state[2]==2):
+                state[1]-=1
+            if(state[2]==3):
+                state[0]+=1
+        if(action=='Wait'):
+            pass
+        return state
         pass
 
     def goal_test(self, state):
         """
         Return True if state is a goal state
         """
+
+        #The goals given in the problem are the possible locations of the wumpus
         "*** YOUR CODE HERE ***"
-        return True
+        for goal in self.goals:
+            vector=(goal[0]-state[0],goal[1]-state[1])
+            if(vector[0]*vector[1]==0): #It has to be either horizontal or vertical
+                if(vector[0]==0):#The x coordinate is the same, thus either north or south
+                    if(state[2]==0 and vector[1]>=0):
+                        return True
+                    if(state[2]==2 and vector[1]<=0):
+                        return True
+
+                if(vector[1]==0):#The y coordinate is the same, thus either east or west
+                    if(state[2]==1 and vector[0]<=0):
+                        return True
+                    if(state[2]==3 and vector[0]>=0):
+                        return True
+
+        return False
 
 #-------------------------------------------------------------------------------
 
